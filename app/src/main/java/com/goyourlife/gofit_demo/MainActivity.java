@@ -406,8 +406,9 @@ public class MainActivity extends PreferenceActivity implements Preference.OnPre
         }
 
         else if (preference.getKey().equals("demo_function_sync")) {
-            Timer timer = new Timer();
+            final Timer timer = new Timer();
             if (_goFITSdk != null) {
+                final long clickTime = System.currentTimeMillis();
                 Log.i(_tag, "demo_function_sync");
                 final Handler handler = new Handler();
                 final Runnable runnable = new Runnable() {
@@ -426,7 +427,7 @@ public class MainActivity extends PreferenceActivity implements Preference.OnPre
 
                             @Override
                             public void onProgress(String message, int progress) {
-                                Log.i(_tag, "doSyncFitnessData() : onProgress() : message = " + message + ", progress = " + progress);
+                                //Log.i(_tag, "doSyncFitnessData() : onProgress() : message = " + message + ", progress = " + progress);
                                 Preference pPref = (Preference) findPreference("demo_function_sync");
                                 String summary = String.format("%d", progress);
                                 pPref.setSummary(summary);
@@ -456,20 +457,19 @@ public class MainActivity extends PreferenceActivity implements Preference.OnPre
                                     Log.i(_tag, "doSyncFitnessData() : onGetFitnessData() : spo2 = " + getDate(spo2.getTimestamp()) + spo2.toJSONString());
                                 }
                                 long endTime = System.currentTimeMillis();
-                                Log.i("wsy", "程式碼執行時間： " + (endTime - startTime) + "ms");
+                                long finishTime = endTime - clickTime;
+                                Log.i(_tag, "程式碼執行時間： " + (endTime - startTime) + "ms");
                                 handler.postDelayed(runnable1, 0);
+                                if (finishTime >= 20000) {
+                                    handler.removeCallbacks(runnable1);
+                                    Log.i(_tag, "全部程式碼執行時間： " + finishTime + "ms");
+                                }
                             }
                         });
+
+
                     }
                 };
-
-                TimerTask task = new TimerTask() {
-                    public void run() {
-                        handler.removeCallbacks(runnable);
-                    }
-                };
-
-                timer.schedule(task, 60*1000);
                 handler.postDelayed(runnable, 0);
 
                 // Demo - doSyncFitnessData API
